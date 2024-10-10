@@ -1721,9 +1721,17 @@ def logged_query(cr, query, args=None, skip_no_result=False):
         duration = datetime.now() - start
         if log_msg:
             try:
-                full_query = tools.ustr(cr._obj.query)
+                if version_info[0] < 18:
+                    full_query = tools.ustr(cr._obj.query)
+                else:
+                    full_query = cr._obj.query.decode("utf-8", errors="strict")
             except AttributeError:
-                full_query = tools.ustr(cr.mogrify(query, args))
+                if version_info[0] < 18:
+                    full_query = tools.ustr(cr.mogrify(query, args))
+                else:
+                    full_query = cr.mogrify(query, args).decode(
+                        "utf-8", errors="strict"
+                    )
             logger.log(
                 log_level,
                 log_msg,
